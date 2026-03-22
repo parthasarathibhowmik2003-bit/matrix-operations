@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Operations Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .matrix-grid {
+            display: grid;
+            gap: 8px;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .cell-input {
+            width: 50px;
+            height: 40px;
+            text-align: center;
+            border-radius: 4px;
+            border: 1px solid #d1d5db;
+        }
+        .cell-input:focus {
+            outline: 2px solid #3b82f6;
+            border-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 font-sans">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-10">
+        <h1 class="text-3xl font-bold text-slate-800 mb-2 text-center">Matrix Operations Solver</h1>
+        <p class="text-slate-500 text-center mb-8">Perform Addition, Subtraction, Multiplication, and Division (Inverse Multiplication)</p>
+
+        <!-- Configuration Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 bg-slate-100 p-6 rounded-xl">
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Matrix A Size (Rows x Cols)</label>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="rowsA" value="2" min="1" max="5" class="w-20 p-2 border rounded">
+                    <span>x</span>
+                    <input type="number" id="colsA" value="2" min="1" max="5" class="w-20 p-2 border rounded">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Matrix B Size (Rows x Cols)</label>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="rowsB" value="2" min="1" max="5" class="w-20 p-2 border rounded">
+                    <span>x</span>
+                    <input type="number" id="colsB" value="2" min="1" max="5" class="w-20 p-2 border rounded">
+                </div>
+            </div>
+            <div class="md:col-span-2 text-center">
+                <button onclick="generateGrids()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                    Set Dimensions
+                </button>
+            </div>
+        </div>
+
+        <!-- Input Grids -->
+        <div class="flex flex-col md:flex-row justify-around gap-8 mb-10">
+            <div class="flex flex-col items-center">
+                <span class="font-bold text-lg mb-2 text-indigo-600">Matrix A</span>
+                <div id="gridA" class="matrix-grid"></div>
+            </div>
+            <div class="flex flex-col items-center">
+                <span class="font-bold text-lg mb-2 text-emerald-600">Matrix B</span>
+                <div id="gridB" class="matrix-grid"></div>
+            </div>
+        </div>
+
+        <!-- Operation Buttons -->
+        <div class="flex flex-wrap justify-center gap-4 mb-10">
+            <button onclick="calculate('add')" class="px-6 py-3 bg-blue-500 text-white rounded-lg font-bold shadow-md hover:bg-blue-600 transition">A + B</button>
+            <button onclick="calculate('sub')" class="px-6 py-3 bg-orange-500 text-white rounded-lg font-bold shadow-md hover:bg-orange-600 transition">A - B</button>
+            <button onclick="calculate('mul')" class="px-6 py-3 bg-purple-500 text-white rounded-lg font-bold shadow-md hover:bg-purple-600 transition">A × B</button>
+            <button onclick="calculate('div')" class="px-6 py-3 bg-red-500 text-white rounded-lg font-bold shadow-md hover:bg-red-600 transition">A ÷ B (A × B⁻¹)</button>
+        </div>
+
+        <!-- Result Section -->
+        <div id="resultContainer" class="hidden border-t pt-8">
+            <h2 class="text-2xl font-bold text-center text-slate-800 mb-4">Calculation Result</h2>
+            <div id="resultGrid" class="matrix-grid mx-auto inline-grid" style="display: grid; justify-content: center;"></div>
+            <p id="errorMsg" class="text-red-500 font-medium text-center mt-4"></p>
+        </div>
+    </div>
+
+    <script>
+        function generateGrids() {
+            const rA = parseInt(document.getElementById('rowsA').value);
+            const cA = parseInt(document.getElementById('colsA').value);
+            const rB = parseInt(document.getElementById('rowsB').value);
+            const cB = parseInt(document.getElementById('colsB').value);
+
+            setupGrid('gridA', rA, cA);
+            setupGrid('gridB', rB, cB);
+            document.getElementById('resultContainer').classList.add('hidden');
+        }
+
+        function setupGrid(containerId, rows, cols) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'cell-input';
+                    input.id = `${containerId}_${i}_${j}`;
+                    input.value = Math.floor(Math.random() * 10); // Default random values for testing
+                    container.appendChild(input);
+                }
+            }
+        }
+
+        function getMatrixData(id, r, c) {
+            let matrix = [];
+            for (let i = 0; i < r; i++) {
+                let row = [];
+                for (let j = 0; j < c; j++) {
+                    row.push(parseFloat(document.getElementById(`${id}_${i}_${j}`).value) || 0);
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        function showResult(matrix) {
+            const container = document.getElementById('resultGrid');
+            const resContainer = document.getElementById('resultContainer');
+            const error = document.getElementById('errorMsg');
+            
+            error.innerText = '';
+            container.innerHTML = '';
+            resContainer.classList.remove('hidden');
+
+            if (!matrix || matrix.length === 0) return;
+
+            container.style.gridTemplateColumns = `repeat(${matrix[0].length}, 1fr)`;
+            matrix.forEach(row => {
+                row.forEach(val => {
+                    const div = document.createElement('div');
+                    div.className = 'cell-input bg-white border flex items-center justify-center font-bold text-indigo-700';
+                    div.innerText = Number.isInteger(val) ? val : val.toFixed(2);
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        function invertMatrix2x2(m) {
+            const det = m[0][0] * m[1][1] - m[0][1] * m[1][0];
+            if (det === 0) return null;
+            return [
+                [m[1][1] / det, -m[0][1] / det],
+                [-m[1][0] / det, m[0][0] / det]
+            ];
+        }
+
+        function multiplyMatrices(A, B) {
+            let result = new Array(A.length).fill(0).map(() => new Array(B[0].length).fill(0));
+            return result.map((row, i) => {
+                return row.map((val, j) => {
+                    return A[i].reduce((sum, elm, k) => sum + (elm * B[k][j]), 0);
+                });
+            });
+        }
+
+        function calculate(op) {
+            const rA = parseInt(document.getElementById('rowsA').value);
+            const cA = parseInt(document.getElementById('colsA').value);
+            const rB = parseInt(document.getElementById('rowsB').value);
+            const cB = parseInt(document.getElementById('colsB').value);
+            const error = document.getElementById('errorMsg');
+            
+            const A = getMatrixData('gridA', rA, cA);
+            const B = getMatrixData('gridB', rB, cB);
+            let result = [];
+
+            try {
+                if (op === 'add' || op === 'sub') {
+                    if (rA !== rB || cA !== cB) throw "Dimensions must match for Addition/Subtraction.";
+                    result = A.map((row, i) => row.map((val, j) => op === 'add' ? val + B[i][j] : val - B[i][j]));
+                } 
+                else if (op === 'mul') {
+                    if (cA !== rB) throw "Columns of A must equal Rows of B for Multiplication.";
+                    result = multiplyMatrices(A, B);
+                } 
+                else if (op === 'div') {
+                    if (rB !== 2 || cB !== 2 || rB !== cB) throw "Division (Inverse) currently supported for 2x2 Matrix B only.";
+                    if (cA !== rB) throw "Matrix dimensions incompatible for multiplication by inverse.";
+                    
+                    const invB = invertMatrix2x2(B);
+                    if (!invB) throw "Matrix B is non-invertible (Determinant is 0).";
+                    result = multiplyMatrices(A, invB);
+                }
+                showResult(result);
+            } catch (e) {
+                error.innerText = e;
+                document.getElementById('resultGrid').innerHTML = '';
+                document.getElementById('resultContainer').classList.remove('hidden');
+            }
+        }
+
+        // Initialize on load
+        window.onload = generateGrids;
+    </script>
+</body>
+</html>
